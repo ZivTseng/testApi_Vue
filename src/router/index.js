@@ -12,11 +12,45 @@ const routes = [
     name: 'Login',
     component: Login 
   },
-  { 
-    path: '/articles', 
-    name: 'ArticleList',
-    // 這裡使用懶加載，確保你有建立 src/views/ArticleList.vue
-    component: () => import('../views/ArticleList.vue') 
+  {
+    path: '/dashboard',
+    name: 'Dashboard',
+    component: () => import('../views/Dashboard.vue')
+  },
+  {
+    path: '/students',
+    name: 'Students',
+    component: () => import('../views/Students.vue')
+  },
+  {
+    path: '/courses',
+    name: 'Courses',
+    component: () => import('../views/Courses.vue')
+  },
+  {
+    path: '/reservations',
+    name: 'Reservations',
+    component: () => import('../views/Reservations.vue')
+  },
+  {
+    path: '/billing',
+    name: 'Billing',
+    component: () => import('../views/Billing.vue')
+  },
+  {
+    path: '/reports',
+    name: 'Reports',
+    component: () => import('../views/Reports.vue')
+  },
+  {
+    path: '/settings',
+    name: 'Settings',
+    component: () => import('../views/Settings.vue')
+  },
+  {
+    path: '/liff',
+    name: 'LiffApp',
+    component: () => import('../views/LiffApp.vue')
   }
 ];
 

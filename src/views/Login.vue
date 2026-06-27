@@ -1,64 +1,73 @@
 <template>
   <div class="login-container">
-    <el-card class="login-card" shadow="always">
-      <div class="login-header">
-        <el-icon size="50" color="#409EFF"><Platform /></el-icon>
-        <h2>Blog Admin System</h2>
-        <p>{{ isLoginMode ? '請輸入您的管理員帳號密碼' : '註冊新的管理員帳號' }}</p>
+    <div class="login-panel">
+      <div class="brand-mark">
+        <el-icon :size="22" color="#b8924f"><Platform /></el-icon>
+        <span>幼兒體能館</span>
       </div>
+      <h1>專注每一堂課，<br />照顧每一個孩子。</h1>
+      <p class="brand-sub">課程預約 · 學員管理 · 點數與繳費，一站式後台系統。</p>
+    </div>
 
-      <el-form v-if="isLoginMode" :model="loginForm" label-position="top" size="large" @keyup.enter="handleLogin">
-        <el-form-item label="帳號 (Email)">
-          <el-input v-model="loginForm.email" placeholder="請輸入帳號" prefix-icon="Message" clearable />
-        </el-form-item>
-        
-        <el-form-item label="密碼">
-          <el-input v-model="loginForm.password" type="password" placeholder="請輸入密碼" prefix-icon="Lock" show-password />
-        </el-form-item>
-
-        <div class="login-options">
-          <el-checkbox v-model="rememberMe">記住我</el-checkbox>
+    <div class="form-panel">
+      <el-card class="login-card" shadow="never">
+        <div class="login-header">
+          <h2>{{ isLoginMode ? '管理員登入' : '建立管理員帳號' }}</h2>
+          <p>{{ isLoginMode ? '請輸入您的管理員帳號密碼' : '註冊新的管理員帳號' }}</p>
         </div>
 
-        <el-button type="primary" class="action-button" :loading="loading" @click="handleLogin">
-          登入系統
-        </el-button>
-      </el-form>
+        <el-form v-if="isLoginMode" :model="loginForm" label-position="top" size="large" @keyup.enter="handleLogin">
+          <el-form-item label="帳號">
+            <el-input v-model="loginForm.username" placeholder="請輸入帳號" prefix-icon="User" clearable />
+          </el-form-item>
 
-      <el-form v-else :model="registerForm" label-position="top" size="large" @keyup.enter="handleRegister">
-        <el-form-item label="使用者名稱">
-          <el-input v-model="registerForm.username" placeholder="請輸入您的暱稱 (例如: Ziv)" prefix-icon="User" clearable />
-        </el-form-item>
+          <el-form-item label="密碼">
+            <el-input v-model="loginForm.password" type="password" placeholder="請輸入密碼" prefix-icon="Lock" show-password />
+          </el-form-item>
 
-        <el-form-item label="帳號 (Email)">
-          <el-input v-model="registerForm.email" placeholder="請輸入 Email 作為登入帳號" prefix-icon="Message" clearable />
-        </el-form-item>
-        
-        <el-form-item label="密碼">
-          <el-input v-model="registerForm.password" type="password" placeholder="請設定密碼" prefix-icon="Lock" show-password />
-        </el-form-item>
+          <div class="login-options">
+            <el-checkbox v-model="rememberMe">記住我</el-checkbox>
+          </div>
 
-        <el-form-item label="確認密碼">
-          <el-input v-model="registerForm.confirmPassword" type="password" placeholder="請再次輸入密碼" prefix-icon="Check" show-password />
-        </el-form-item>
+          <el-button type="primary" class="action-button" :loading="loading" @click="handleLogin">
+            登入系統
+          </el-button>
+        </el-form>
 
-        <el-button type="success" class="action-button" :loading="loading" @click="handleRegister">
-          立即註冊
-        </el-button>
-      </el-form>
+        <el-form v-else :model="registerForm" label-position="top" size="large" @keyup.enter="handleRegister">
+          <el-form-item label="顯示名稱">
+            <el-input v-model="registerForm.name" placeholder="請輸入您的姓名 (例如: Ziv)" prefix-icon="User" clearable />
+          </el-form-item>
 
-      <div class="toggle-mode">
-        <span v-if="isLoginMode">
-          還沒有帳號嗎？ 
-          <el-button link type="primary" @click="toggleMode">點此註冊</el-button>
-        </span>
-        <span v-else>
-          已經有帳號了？ 
-          <el-button link type="primary" @click="toggleMode">返回登入</el-button>
-        </span>
-      </div>
+          <el-form-item label="登入帳號">
+            <el-input v-model="registerForm.username" placeholder="請輸入登入帳號" prefix-icon="Message" clearable />
+          </el-form-item>
 
-    </el-card>
+          <el-form-item label="密碼">
+            <el-input v-model="registerForm.password" type="password" placeholder="請設定密碼" prefix-icon="Lock" show-password />
+          </el-form-item>
+
+          <el-form-item label="確認密碼">
+            <el-input v-model="registerForm.confirmPassword" type="password" placeholder="請再次輸入密碼" prefix-icon="Check" show-password />
+          </el-form-item>
+
+          <el-button type="primary" class="action-button" :loading="loading" @click="handleRegister">
+            立即註冊
+          </el-button>
+        </el-form>
+
+        <div class="toggle-mode">
+          <span v-if="isLoginMode">
+            還沒有帳號嗎？
+            <el-button link type="primary" @click="toggleMode">點此註冊</el-button>
+          </span>
+          <span v-else>
+            已經有帳號了？
+            <el-button link type="primary" @click="toggleMode">返回登入</el-button>
+          </span>
+        </div>
+      </el-card>
+    </div>
   </div>
 </template>
 
@@ -77,14 +86,14 @@ const isLoginMode = ref(true)
 
 // 登入用的資料
 const loginForm = reactive({
-  email: '',
+  username: '',
   password: ''
 })
 
 // 註冊用的資料
 const registerForm = reactive({
+  name: '',
   username: '',
-  email: '',
   password: '',
   confirmPassword: ''
 })
@@ -93,31 +102,28 @@ const registerForm = reactive({
 const toggleMode = () => {
   isLoginMode.value = !isLoginMode.value
   // 切換時順便清空註冊表單，避免資料殘留
+  registerForm.name = ''
   registerForm.username = ''
-  registerForm.email = ''
   registerForm.password = ''
   registerForm.confirmPassword = ''
 }
 
 // === 登入功能 ===
 const handleLogin = async () => {
-  if (!loginForm.email || !loginForm.password) {
+  if (!loginForm.username || !loginForm.password) {
     ElMessage.warning('請填寫完整登入資訊')
     return
   }
-  
+
   loading.value = true
   try {
     const res = await axios.post('http://localhost:8080/api/auth/login', loginForm)
-    
+
     localStorage.setItem('token', res.data.token)
-    
-    // 如果後端沒傳 username，就用 email 前綴代替
-    const displayName = res.data.username || loginForm.email.split('@')[0]
-    localStorage.setItem('username', displayName)
-    
-    ElMessage.success({ message: `歡迎回來，${displayName}！`, duration: 2000 })
-    router.push('/articles')
+    localStorage.setItem('username', res.data.username || loginForm.username)
+
+    ElMessage.success({ message: `歡迎回來，${res.data.username}！`, duration: 2000 })
+    router.push('/dashboard')
   } catch (err) {
     ElMessage.error('登入失敗：帳號或密碼錯誤')
   } finally {
@@ -128,7 +134,7 @@ const handleLogin = async () => {
 // === 註冊功能 ===
 const handleRegister = async () => {
   // 1. 前端基本驗證
-  if (!registerForm.username || !registerForm.email || !registerForm.password) {
+  if (!registerForm.name || !registerForm.username || !registerForm.password) {
     ElMessage.warning('請填寫完整註冊資訊')
     return
   }
@@ -142,19 +148,20 @@ const handleRegister = async () => {
     // 2. 呼叫後端的註冊 API (目前預設路徑為 /api/auth/register)
     await axios.post('http://localhost:8080/api/auth/register', {
       username: registerForm.username,
-      email: registerForm.email,
-      password: registerForm.password
+      password: registerForm.password,
+      name: registerForm.name,
+      role: 'STAFF'
     })
-    
+
     // 3. 註冊成功後的處理
     ElMessage.success('註冊成功！請使用新帳號登入。')
-    // 自動將剛註冊的 email 填入登入表單，方便使用者
-    loginForm.email = registerForm.email
+    // 自動將剛註冊的帳號填入登入表單，方便使用者
+    loginForm.username = registerForm.username
     loginForm.password = ''
     // 切換回登入模式
     isLoginMode.value = true
   } catch (err) {
-    // 根據後端回傳的錯誤訊息提示 (例如 Email 已被註冊)
+    // 根據後端回傳的錯誤訊息提示 (例如帳號已被註冊)
     const errorMsg = err.response?.data?.message || '註冊失敗，請稍後再試'
     ElMessage.error(errorMsg)
   } finally {
@@ -167,44 +174,89 @@ const handleRegister = async () => {
 .login-container {
   height: 100vh;
   display: flex;
-  justify-content: center;
-  align-items: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #f6f5f2;
 }
-.login-card {
-  width: 420px;
-  border-radius: 15px;
-  padding: 20px 30px;
+
+.login-panel {
+  flex: 1.1;
+  background: #1c1f26;
+  background-image: radial-gradient(circle at 20% 20%, rgba(184, 146, 79, 0.12), transparent 45%);
+  color: #f1efe9;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 80px;
   box-sizing: border-box;
 }
+.brand-mark {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: #d9bd86;
+  margin-bottom: 48px;
+}
+.login-panel h1 {
+  color: #f1efe9;
+  font-size: 32px;
+  line-height: 1.5;
+  font-weight: 600;
+  margin: 0 0 16px;
+}
+.brand-sub {
+  color: #9a9ca5;
+  font-size: 14px;
+  letter-spacing: 0.3px;
+  margin: 0;
+}
+
+.form-panel {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #ffffff;
+}
+.login-card {
+  width: 360px;
+  border: none !important;
+  box-shadow: none !important;
+}
 .login-header {
-  text-align: center;
-  margin-bottom: 25px;
+  margin-bottom: 28px;
 }
 .login-header h2 {
-  margin: 15px 0 5px;
-  font-size: 24px;
-  color: #2c3e50;
+  margin: 0 0 6px;
+  font-size: 22px;
+  color: #1c1f26;
 }
 .login-header p {
-  color: #95a5a6;
-  font-size: 14px;
-  margin-top: 5px;
+  color: #8a8d96;
+  font-size: 13px;
+  margin: 0;
 }
 .login-options {
   margin-bottom: 20px;
 }
 .action-button {
   width: 100%;
-  border-radius: 8px;
-  font-weight: bold;
-  letter-spacing: 2px;
-  margin-top: 10px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  margin-top: 6px;
+  height: 42px;
 }
 .toggle-mode {
   text-align: center;
-  margin-top: 25px;
-  font-size: 14px;
-  color: #606266;
+  margin-top: 24px;
+  font-size: 13px;
+  color: #8a8d96;
+}
+
+@media (max-width: 860px) {
+  .login-panel {
+    display: none;
+  }
 }
 </style>
