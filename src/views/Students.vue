@@ -78,11 +78,18 @@
                     </el-tag>
                   </template>
                 </el-table-column>
+                <el-table-column label="報名狀態" width="110">
+                  <template #default="{ row }">
+                    <el-tag v-if="row.pendingReview" type="warning" size="small">待確認</el-tag>
+                    <el-tag v-else type="success" size="small">已確認</el-tag>
+                  </template>
+                </el-table-column>
                 <el-table-column label="孩子數量" width="100">
                   <template #default="{ row }">{{ row.studentIds?.length || 0 }}</template>
                 </el-table-column>
-                <el-table-column label="操作" width="240" fixed="right">
+                <el-table-column label="操作" width="280" fixed="right">
                   <template #default="{ row }">
+                    <el-button v-if="row.pendingReview" link type="success" @click="confirmReview(row)">標記已確認</el-button>
                     <el-button link type="warning" @click="generateBindingCode(row)">產生綁定碼</el-button>
                     <el-button link type="primary" @click="openParentDialog(row)">編輯</el-button>
                     <el-button link type="danger" @click="deleteParent(row)">刪除</el-button>
@@ -322,6 +329,16 @@ const saveParent = async () => {
     loadStudents() // 家長綁定的孩子清單會影響學員端的家長顯示，需同步刷新
   } catch {
     // 錯誤訊息已由 http 攔截器統一顯示，這裡只需保持對話框開啟讓使用者修正
+  }
+}
+
+const confirmReview = async (row) => {
+  try {
+    await http.post(`/api/parents/${row.id}/confirm-review`)
+    ElMessage.success('已標記為確認')
+    loadParents()
+  } catch {
+    // 錯誤訊息已由 http 攔截器統一顯示
   }
 }
 

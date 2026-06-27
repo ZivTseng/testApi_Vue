@@ -6,13 +6,27 @@
       <p>載入中...</p>
     </div>
 
-    <!-- 第一次使用，尚未綁定，請輸入電話 -->
+    <!-- 第一次使用，尚未綁定 -->
     <div v-else-if="stage === 'needPhone'" class="liff-center liff-link-box">
       <h3>歡迎使用幼兒體能館預約系統</h3>
-      <p class="hint">請輸入您在館方登記的電話號碼，完成帳號綁定</p>
-      <el-input v-model="phone" placeholder="請輸入電話號碼" style="margin: 16px 0" />
-      <el-button type="primary" :loading="linking" @click="submitLink" style="width: 100%">綁定並開始使用</el-button>
-      <p v-if="linkError" class="error-text">{{ linkError }}</p>
+
+      <template v-if="!isNewCustomer">
+        <p class="hint">已經是館方學員的家長，請輸入您登記的電話號碼完成綁定</p>
+        <el-input v-model="phone" placeholder="請輸入電話號碼" style="margin: 16px 0" />
+        <el-button type="primary" :loading="linking" @click="submitLink" style="width: 100%">綁定並開始使用</el-button>
+        <p v-if="linkError" class="error-text">{{ linkError }}</p>
+        <el-button link type="primary" style="margin-top: 12px" @click="isNewCustomer = true">我是新朋友，立即報名</el-button>
+      </template>
+
+      <template v-else>
+        <p class="hint">第一次使用，請填寫以下資訊完成報名（館方確認後即可開始預約課程）</p>
+        <el-input v-model="registerForm.parentName" placeholder="家長姓名" style="margin: 8px 0" />
+        <el-input v-model="registerForm.phone" placeholder="聯絡電話" style="margin: 8px 0" />
+        <el-input v-model="registerForm.childName" placeholder="孩子姓名" style="margin: 8px 0" />
+        <el-button type="primary" :loading="linking" @click="submitRegister" style="width: 100%; margin-top: 8px">送出報名</el-button>
+        <p v-if="linkError" class="error-text">{{ linkError }}</p>
+        <el-button link type="primary" style="margin-top: 12px" @click="isNewCustomer = false">我已經是學員家長</el-button>
+      </template>
     </div>
 
     <!-- 主畫面 -->
@@ -83,6 +97,8 @@ const errorMessage = ref('')
 const phone = ref('')
 const linking = ref(false)
 const linkError = ref('')
+const isNewCustomer = ref(false)
+const registerForm = ref({ parentName: '', phone: '', childName: '' })
 
 const parentName = ref('')
 const activeTab = ref('sessions')
@@ -141,6 +157,29 @@ async function submitLink() {
     finishLogin(data)
   } catch (e) {
     linkError.value = e.response?.data?.message || '綁定失敗，請確認電話號碼是否正確，或聯絡館方'
+  } finally {
+    linking.value = false
+  }
+}
+
+async function submitRegister() {
+  const { parentName, phone: regPhone, childName } = registerForm.value
+  if (!parentName || !regPhone || !childName) {
+    linkError.value = '請填寫完整資訊'
+    return
+  }
+  linking.value = true
+  linkError.value = ''
+  try {
+    const { data } = await liffHttp.post('/api/liff/register', {
+      idToken: cachedIdToken,
+      parentName,
+      phone: regPhone,
+      childName,
+    }, { skipErrorToast: true })
+    finishLogin(data)
+  } catch (e) {
+    linkError.value = e.response?.data?.message || '報名失敗，請稍後再試或聯絡館方'
   } finally {
     linking.value = false
   }
