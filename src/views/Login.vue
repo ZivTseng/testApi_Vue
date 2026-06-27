@@ -75,7 +75,7 @@
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import axios from 'axios'
+import http from '../api/http'
 
 const router = useRouter()
 const loading = ref(false)
@@ -117,7 +117,7 @@ const handleLogin = async () => {
 
   loading.value = true
   try {
-    const res = await axios.post('http://localhost:8080/api/auth/login', loginForm)
+    const res = await http.post('/api/auth/login', loginForm, { skipErrorToast: true })
 
     localStorage.setItem('token', res.data.token)
     localStorage.setItem('username', res.data.username || loginForm.username)
@@ -146,12 +146,12 @@ const handleRegister = async () => {
   loading.value = true
   try {
     // 2. 呼叫後端的註冊 API (目前預設路徑為 /api/auth/register)
-    await axios.post('http://localhost:8080/api/auth/register', {
+    await http.post('/api/auth/register', {
       username: registerForm.username,
       password: registerForm.password,
       name: registerForm.name,
       role: 'STAFF'
-    })
+    }, { skipErrorToast: true })
 
     // 3. 註冊成功後的處理
     ElMessage.success('註冊成功！請使用新帳號登入。')
