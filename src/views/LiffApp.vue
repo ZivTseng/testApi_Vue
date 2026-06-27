@@ -29,6 +29,14 @@
       </template>
     </div>
 
+    <!-- 報名資料還在等館方確認 -->
+    <div v-else-if="stage === 'pendingReview'" class="liff-center liff-link-box">
+      <el-icon :size="32" color="#e6a23c"><Clock /></el-icon>
+      <h3>報名資料確認中</h3>
+      <p class="hint">您好，{{ parentName }}，您的報名資料已收到，館方會盡快與您聯絡確認，確認完成後就可以開始預約課程囉！</p>
+      <el-button type="primary" :loading="checkingStatus" @click="recheckStatus" style="width: 100%; margin-top: 12px">重新整理確認狀態</el-button>
+    </div>
+
     <!-- 主畫面 -->
     <div v-else-if="stage === 'ready'" class="liff-main">
       <div class="liff-header">
@@ -85,7 +93,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { Loading } from '@element-plus/icons-vue'
+import { Loading, Clock } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import liff from '@line/liff'
 import { LIFF_ID } from '../liffConfig'
@@ -139,10 +147,24 @@ async function authenticate() {
 function finishLogin(data) {
   localStorage.setItem('liffToken', data.token)
   parentName.value = data.parentName
+  if (data.pendingReview) {
+    stage.value = 'pendingReview'
+    return
+  }
   stage.value = 'ready'
   loadChildren()
   loadSessions()
   loadReservations()
+}
+
+const checkingStatus = ref(false)
+async function recheckStatus() {
+  checkingStatus.value = true
+  try {
+    await authenticate()
+  } finally {
+    checkingStatus.value = false
+  }
 }
 
 async function submitLink() {
