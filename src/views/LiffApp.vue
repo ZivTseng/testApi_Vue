@@ -50,7 +50,7 @@
             <div v-for="s in sessions" :key="s.id" class="session-card">
               <div class="session-info">
                 <div class="session-title">{{ s.courseName }}</div>
-                <div class="session-meta">{{ s.sessionDate }} {{ s.startTime }} - {{ s.endTime }}</div>
+                <div class="session-meta">{{ s.sessionDate }} {{ s.startTime?.slice(0, 5) }} - {{ s.endTime?.slice(0, 5) }}</div>
                 <div class="session-meta">名額：{{ s.reservedCount }} / {{ s.capacity }}{{ s.full ? '（已滿，可候補）' : '' }}</div>
               </div>
               <el-select v-model="bookingChild[s.id]" placeholder="選擇孩子" size="small" style="width: 100px">
@@ -69,7 +69,7 @@
             <div v-for="r in reservations" :key="r.id" class="session-card">
               <div class="session-info">
                 <div class="session-title">{{ r.studentName }} - {{ r.courseName }}</div>
-                <div class="session-meta">{{ r.sessionDate }} {{ r.startTime }}</div>
+                <div class="session-meta">{{ r.sessionDate }} {{ r.startTime?.slice(0, 5) }}</div>
                 <el-tag :type="statusTagType(r.status)" size="small">{{ statusLabel(r.status) }}</el-tag>
               </div>
               <el-button

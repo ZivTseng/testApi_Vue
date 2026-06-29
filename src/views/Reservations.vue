@@ -207,7 +207,7 @@ const visibleSessions = computed(() =>
 )
 const activeSession = computed(() => allSessions.value.find((s) => s.id === activeSessionId.value) || null)
 const drawerTitle = computed(() =>
-  activeSession.value ? `${activeSession.value.courseName} · ${activeSession.value.sessionDate} ${activeSession.value.startTime}` : ''
+  activeSession.value ? `${activeSession.value.courseName} · ${activeSession.value.sessionDate} ${activeSession.value.startTime?.slice(0, 5)}` : ''
 )
 const sessionsForBookingCourse = computed(() =>
   allSessions.value.filter((s) => s.courseId === bookingForm.courseId)

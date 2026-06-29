@@ -42,6 +42,7 @@
             <el-card class="panel" shadow="never">
               <div class="panel-header">
                 <h3>{{ selectedCourse ? `「${selectedCourse.name}」的場次` : '請先在左側選擇課程' }}</h3>
+                <el-checkbox v-model="showPastSessions" style="margin-right: 12px">顯示已過期場次</el-checkbox>
                 <el-button
                   type="primary"
                   :icon="Plus"
@@ -50,10 +51,10 @@
                   @click="openSessionDialog()"
                 >新增場次</el-button>
               </div>
-              <el-table :data="sessions" v-loading="sessionsLoading" stripe>
+              <el-table :data="pagedSessions" v-loading="sessionsLoading" stripe>
                 <el-table-column prop="sessionDate" label="日期" width="120" />
                 <el-table-column label="時間" width="140">
-                  <template #default="{ row }">{{ row.startTime }} - {{ row.endTime }}</template>
+                  <template #default="{ row }">{{ row.startTime?.slice(0, 5) }} - {{ row.endTime?.slice(0, 5) }}</template>
                 </el-table-column>
                 <el-table-column label="名額" width="140">
                   <template #default="{ row }">
@@ -67,6 +68,14 @@
                   </template>
                 </el-table-column>
               </el-table>
+              <el-pagination
+                v-if="visibleSessions.length > sessionPageSize"
+                v-model:current-page="sessionPage"
+                :page-size="sessionPageSize"
+                :total="visibleSessions.length"
+                layout="prev, pager, next"
+                style="margin-top: 12px; justify-content: flex-end"
+              />
             </el-card>
           </div>
         </el-main>
@@ -115,10 +124,10 @@
         </el-form-item>
 
         <el-form-item label="開始時間" required>
-          <el-time-picker v-model="sessionForm.startTime" value-format="HH:mm:ss" style="width: 100%" />
+          <el-time-picker v-model="sessionForm.startTime" value-format="HH:mm:ss" format="HH:mm" style="width: 100%" />
         </el-form-item>
         <el-form-item label="結束時間" required>
-          <el-time-picker v-model="sessionForm.endTime" value-format="HH:mm:ss" style="width: 100%" />
+          <el-time-picker v-model="sessionForm.endTime" value-format="HH:mm:ss" format="HH:mm" style="width: 100%" />
         </el-form-item>
         <el-form-item label="名額" required>
           <el-input-number v-model="sessionForm.capacity" :min="1" style="width: 100%" />
@@ -133,7 +142,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
@@ -154,6 +163,20 @@ const selectedCourse = ref(null)
 const sessions = ref([])
 const sessionsLoading = ref(false)
 const sessionDialogVisible = ref(false)
+const showPastSessions = ref(false)
+const sessionPage = ref(1)
+const sessionPageSize = 15
+
+// 同一個課程如果每天都排課，半年下來會有幾百筆場次，預設先濾掉已過期的，避免列表太長不好找
+const visibleSessions = computed(() => {
+  if (showPastSessions.value) return sessions.value
+  const today = new Date().toISOString().slice(0, 10)
+  return sessions.value.filter((s) => s.sessionDate >= today)
+})
+const pagedSessions = computed(() => {
+  const start = (sessionPage.value - 1) * sessionPageSize
+  return visibleSessions.value.slice(start, start + sessionPageSize)
+})
 const emptySessionForm = () => ({
   id: null,
   sessionDate: null,
@@ -194,6 +217,7 @@ const loadAllSessions = async () => {
 
 const handleSelectCourse = async (row) => {
   selectedCourse.value = row
+  sessionPage.value = 1
   if (!row) {
     sessions.value = []
     return
