@@ -62,8 +62,16 @@
             <el-tab-pane label="繳費紀錄" name="payments">
               <div class="toolbar">
                 <el-button type="primary" :icon="Plus" @click="openPaymentDialog">新增繳費紀錄</el-button>
+                <el-date-picker
+                  v-model="paymentDateFilter"
+                  type="date"
+                  value-format="YYYY-MM-DD"
+                  placeholder="依付款日篩選"
+                  clearable
+                  style="width: 180px"
+                />
               </div>
-              <el-table :data="payments" v-loading="paymentsLoading" stripe>
+              <el-table :data="filteredPayments" v-loading="paymentsLoading" stripe>
                 <el-table-column prop="studentName" label="學員" width="120" />
                 <el-table-column prop="planName" label="方案" />
                 <el-table-column label="金額" width="100">
@@ -73,6 +81,7 @@
                   <template #default="{ row }">{{ row.method === 'CASH' ? '現金' : '轉帳' }}</template>
                 </el-table-column>
                 <el-table-column prop="paymentDate" label="付款日" width="120" />
+                <el-table-column prop="note" label="備註" show-overflow-tooltip />
                 <el-table-column label="狀態" width="100">
                   <template #default="{ row }">
                     <el-tag :type="row.status === 'CONFIRMED' ? 'success' : 'warning'">
@@ -161,7 +170,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="方案" required>
-          <el-select v-model="paymentForm.planId" filterable placeholder="請選擇方案" style="width: 100%">
+          <el-select v-model="paymentForm.planId" filterable placeholder="請選擇方案" style="width: 100%" @change="onPaymentPlanChange">
             <el-option v-for="p in plans" :key="p.id" :label="p.name" :value="p.id" />
           </el-select>
         </el-form-item>
@@ -193,7 +202,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
@@ -212,6 +221,13 @@ const studentPlansLoading = ref(false)
 const payments = ref([])
 const paymentsLoading = ref(false)
 const billingStudentId = ref(null)
+const paymentDateFilter = ref(null)
+
+const filteredPayments = computed(() =>
+  paymentDateFilter.value
+    ? payments.value.filter((p) => p.paymentDate === paymentDateFilter.value)
+    : payments.value
+)
 
 const planDialogVisible = ref(false)
 const planForm = reactive({ id: null, name: '', totalSessions: 10, validityDays: 90, price: 0 })
@@ -394,6 +410,14 @@ const openPaymentDialog = () => {
 const openEditPaymentDialog = (row) => {
   Object.assign(paymentForm, { ...row })
   paymentDialogVisible.value = true
+}
+
+// 方案的價格通常是固定的，選了方案就直接帶入金額，省去重複輸入；館方仍可在金額欄位手動覆寫（例如折扣）
+const onPaymentPlanChange = (planId) => {
+  const plan = plans.value.find((p) => p.id === planId)
+  if (plan) {
+    paymentForm.amount = plan.price
+  }
 }
 
 const submitPayment = async () => {
