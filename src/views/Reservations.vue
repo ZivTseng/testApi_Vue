@@ -162,7 +162,7 @@
       </el-form>
       <template #footer>
         <el-button @click="bookingDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="submitBooking">送出預約</el-button>
+        <el-button type="primary" :loading="bookingSaving" @click="submitBooking">送出預約</el-button>
       </template>
     </el-dialog>
   </div>
@@ -196,6 +196,7 @@ const rosterLoading = ref(false)
 const waitlistLoading = ref(false)
 
 const bookingDialogVisible = ref(false)
+const bookingSaving = ref(false)
 const bookingLocked = ref(false)
 const bookingForm = reactive({ courseId: null, sessionId: null, studentId: null, trial: false })
 
@@ -286,6 +287,8 @@ const submitBooking = async () => {
     ElMessage.warning('請選擇課程場次與學員')
     return
   }
+  if (bookingSaving.value) return
+  bookingSaving.value = true
   try {
     const { data } = await http.post('/api/reservations', {
       studentId: bookingForm.studentId,
@@ -301,6 +304,8 @@ const submitBooking = async () => {
     }
   } catch {
     // 錯誤訊息已由 http 攔截器統一顯示，這裡只需保持對話框開啟讓使用者修正
+  } finally {
+    bookingSaving.value = false
   }
 }
 

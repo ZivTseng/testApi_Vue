@@ -114,7 +114,7 @@
       </el-form>
       <template #footer>
         <el-button @click="planDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="savePlan">儲存</el-button>
+        <el-button type="primary" :loading="planSaving" @click="savePlan">儲存</el-button>
       </template>
     </el-dialog>
 
@@ -132,7 +132,7 @@
       </el-form>
       <template #footer>
         <el-button @click="openPlanDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="submitOpenPlan">開通</el-button>
+        <el-button type="primary" :loading="openPlanSaving" @click="submitOpenPlan">開通</el-button>
       </template>
     </el-dialog>
 
@@ -148,7 +148,7 @@
       </el-form>
       <template #footer>
         <el-button @click="adjustDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="submitAdjust">送出</el-button>
+        <el-button type="primary" :loading="adjustSaving" @click="submitAdjust">送出</el-button>
       </template>
     </el-dialog>
 
@@ -186,7 +186,7 @@
       </el-form>
       <template #footer>
         <el-button @click="paymentDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="submitPayment">儲存</el-button>
+        <el-button type="primary" :loading="paymentSaving" @click="submitPayment">儲存</el-button>
       </template>
     </el-dialog>
   </div>
@@ -234,6 +234,11 @@ const emptyPayment = () => ({
   note: '',
 })
 const paymentForm = reactive(emptyPayment())
+
+const planSaving = ref(false)
+const openPlanSaving = ref(false)
+const adjustSaving = ref(false)
+const paymentSaving = ref(false)
 
 const loadPlans = async () => {
   plansLoading.value = true
@@ -284,6 +289,8 @@ const savePlan = async () => {
     ElMessage.warning('請填寫方案名稱')
     return
   }
+  if (planSaving.value) return
+  planSaving.value = true
   const payload = {
     name: planForm.name,
     totalSessions: planForm.totalSessions,
@@ -301,6 +308,8 @@ const savePlan = async () => {
     loadPlans()
   } catch {
     // 錯誤訊息已由 http 攔截器統一顯示
+  } finally {
+    planSaving.value = false
   }
 }
 
@@ -330,6 +339,8 @@ const submitOpenPlan = async () => {
     ElMessage.warning('請選擇方案')
     return
   }
+  if (openPlanSaving.value) return
+  openPlanSaving.value = true
   try {
     await http.post('/api/student-plans', {
       studentId: billingStudentId.value,
@@ -341,6 +352,8 @@ const submitOpenPlan = async () => {
     loadStudentPlans()
   } catch {
     // 錯誤訊息已由 http 攔截器統一顯示
+  } finally {
+    openPlanSaving.value = false
   }
 }
 
@@ -356,6 +369,8 @@ const submitAdjust = async () => {
     ElMessage.warning('請填寫調整量與原因')
     return
   }
+  if (adjustSaving.value) return
+  adjustSaving.value = true
   try {
     await http.post(`/api/student-plans/${adjustForm.studentPlanId}/adjust`, {
       delta: adjustForm.delta,
@@ -366,6 +381,8 @@ const submitAdjust = async () => {
     loadStudentPlans()
   } catch {
     // 錯誤訊息已由 http 攔截器統一顯示
+  } finally {
+    adjustSaving.value = false
   }
 }
 
@@ -384,6 +401,8 @@ const submitPayment = async () => {
     ElMessage.warning('請填寫完整繳費資訊')
     return
   }
+  if (paymentSaving.value) return
+  paymentSaving.value = true
   try {
     if (paymentForm.id) {
       await http.put(`/api/payments/${paymentForm.id}`, paymentForm)
@@ -396,6 +415,8 @@ const submitPayment = async () => {
     loadPayments()
   } catch {
     // 錯誤訊息已由 http 攔截器統一顯示
+  } finally {
+    paymentSaving.value = false
   }
 }
 

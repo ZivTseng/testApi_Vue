@@ -85,7 +85,7 @@
       </el-form>
       <template #footer>
         <el-button @click="courseDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="saveCourse">儲存</el-button>
+        <el-button type="primary" :loading="courseSaving" @click="saveCourse">儲存</el-button>
       </template>
     </el-dialog>
 
@@ -126,7 +126,7 @@
       </el-form>
       <template #footer>
         <el-button @click="sessionDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="saveSession">儲存</el-button>
+        <el-button type="primary" :loading="sessionSaving" @click="saveSession">儲存</el-button>
       </template>
     </el-dialog>
   </div>
@@ -147,6 +147,8 @@ const courses = ref([])
 const coursesLoading = ref(false)
 const courseDialogVisible = ref(false)
 const courseForm = reactive({ id: null, name: '', description: '' })
+const courseSaving = ref(false)
+const sessionSaving = ref(false)
 
 const selectedCourse = ref(null)
 const sessions = ref([])
@@ -219,6 +221,8 @@ const saveCourse = async () => {
     ElMessage.warning('請填寫課程名稱')
     return
   }
+  if (courseSaving.value) return
+  courseSaving.value = true
   const payload = { name: courseForm.name, description: courseForm.description }
   try {
     if (courseForm.id) {
@@ -231,6 +235,8 @@ const saveCourse = async () => {
     loadCourses()
   } catch {
     // 錯誤訊息已由 http 攔截器統一顯示，這裡只需保持對話框開啟讓使用者修正
+  } finally {
+    courseSaving.value = false
   }
 }
 
@@ -285,6 +291,8 @@ const saveSession = async () => {
     ElMessage.warning('請至少勾選一個星期')
     return
   }
+  if (sessionSaving.value) return
+  sessionSaving.value = true
 
   const basePayload = {
     courseId: selectedCourse.value.id,
@@ -320,6 +328,8 @@ const saveSession = async () => {
     refreshSessions()
   } catch {
     // 錯誤訊息已由 http 攔截器統一顯示，這裡只需保持對話框開啟讓使用者修正
+  } finally {
+    sessionSaving.value = false
   }
 }
 

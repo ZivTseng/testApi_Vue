@@ -132,7 +132,7 @@
       </el-form>
       <template #footer>
         <el-button @click="studentDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="saveStudent">儲存</el-button>
+        <el-button type="primary" :loading="studentSaving" @click="saveStudent">儲存</el-button>
       </template>
     </el-dialog>
 
@@ -156,7 +156,7 @@
       </el-form>
       <template #footer>
         <el-button @click="parentDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="saveParent">儲存</el-button>
+        <el-button type="primary" :loading="parentSaving" @click="saveParent">儲存</el-button>
       </template>
     </el-dialog>
 
@@ -217,6 +217,8 @@ const filteredParents = computed(() => {
 
 const studentDialogVisible = ref(false)
 const parentDialogVisible = ref(false)
+const studentSaving = ref(false)
+const parentSaving = ref(false)
 const bindingCodeDialogVisible = ref(false)
 const bindingCodeResult = reactive({ parentName: '', code: '', expireAt: '' })
 
@@ -262,6 +264,8 @@ const saveStudent = async () => {
     ElMessage.warning('請填寫學號與姓名')
     return
   }
+  if (studentSaving.value) return
+  studentSaving.value = true
   const payload = {
     studentNo: studentForm.studentNo,
     name: studentForm.name,
@@ -282,6 +286,8 @@ const saveStudent = async () => {
     loadParents() // 學員的家長綁定會影響家長端的孩子數量，需同步刷新
   } catch {
     // 錯誤訊息已由 http 攔截器統一顯示，這裡只需保持對話框開啟讓使用者修正
+  } finally {
+    studentSaving.value = false
   }
 }
 
@@ -311,6 +317,8 @@ const saveParent = async () => {
     ElMessage.warning('請填寫家長姓名')
     return
   }
+  if (parentSaving.value) return
+  parentSaving.value = true
   const payload = {
     name: parentForm.name,
     phone: parentForm.phone,
@@ -329,6 +337,8 @@ const saveParent = async () => {
     loadStudents() // 家長綁定的孩子清單會影響學員端的家長顯示，需同步刷新
   } catch {
     // 錯誤訊息已由 http 攔截器統一顯示，這裡只需保持對話框開啟讓使用者修正
+  } finally {
+    parentSaving.value = false
   }
 }
 

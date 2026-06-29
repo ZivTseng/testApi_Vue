@@ -41,7 +41,7 @@
       </el-form>
       <template #footer>
         <el-button @click="editDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="saveParam">儲存</el-button>
+        <el-button type="primary" :loading="paramSaving" @click="saveParam">儲存</el-button>
       </template>
     </el-dialog>
   </div>
@@ -61,6 +61,7 @@ const params = ref([])
 const loading = ref(false)
 const editDialogVisible = ref(false)
 const editForm = reactive({ paramKey: '', paramValue: '', description: '' })
+const paramSaving = ref(false)
 
 const loadParams = async () => {
   loading.value = true
@@ -82,6 +83,8 @@ const saveParam = async () => {
     ElMessage.warning('請輸入數值')
     return
   }
+  if (paramSaving.value) return
+  paramSaving.value = true
   try {
     await http.put(`/api/system-parameters/${editForm.paramKey}`, { paramValue: editForm.paramValue })
     ElMessage.success('參數已更新')
@@ -89,6 +92,8 @@ const saveParam = async () => {
     loadParams()
   } catch {
     // 錯誤訊息已由 http 攔截器統一顯示
+  } finally {
+    paramSaving.value = false
   }
 }
 
