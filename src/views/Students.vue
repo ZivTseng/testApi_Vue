@@ -122,7 +122,7 @@
           <el-date-picker v-model="studentForm.birthday" type="date" value-format="YYYY-MM-DD" style="width: 100%" />
         </el-form-item>
         <el-form-item label="家長">
-          <el-select v-model="studentForm.parentIds" multiple placeholder="請選擇家長" style="width: 100%">
+          <el-select v-model="studentForm.parentIds" multiple filterable placeholder="請選擇家長" style="width: 100%">
             <el-option v-for="p in parents" :key="p.id" :label="p.name" :value="p.id" />
           </el-select>
         </el-form-item>
@@ -149,7 +149,7 @@
           <el-input v-model="parentForm.lineUserId" placeholder="綁定 LINE 後自動帶入，可留空" />
         </el-form-item>
         <el-form-item label="孩子">
-          <el-select v-model="parentForm.studentIds" multiple placeholder="請選擇孩子" style="width: 100%">
+          <el-select v-model="parentForm.studentIds" multiple filterable placeholder="請選擇孩子" style="width: 100%">
             <el-option v-for="s in students" :key="s.id" :label="s.name" :value="s.id" />
           </el-select>
         </el-form-item>

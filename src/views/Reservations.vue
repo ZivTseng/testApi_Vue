@@ -127,6 +127,7 @@
         <el-form-item label="課程" required>
           <el-select
             v-model="bookingForm.courseId"
+            filterable
             placeholder="請選擇課程"
             style="width: 100%"
             :disabled="bookingLocked"
@@ -138,6 +139,7 @@
         <el-form-item label="場次" required>
           <el-select
             v-model="bookingForm.sessionId"
+            filterable
             placeholder="請選擇場次"
             style="width: 100%"
             :disabled="bookingLocked || !bookingForm.courseId"

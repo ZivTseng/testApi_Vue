@@ -122,7 +122,7 @@
     <el-dialog v-model="openPlanDialogVisible" title="開通方案" width="420px">
       <el-form label-position="top">
         <el-form-item label="方案" required>
-          <el-select v-model="openPlanForm.planId" placeholder="請選擇方案" style="width: 100%">
+          <el-select v-model="openPlanForm.planId" filterable placeholder="請選擇方案" style="width: 100%">
             <el-option v-for="p in plans" :key="p.id" :label="`${p.name}（${p.totalSessions} 堂）`" :value="p.id" />
           </el-select>
         </el-form-item>
@@ -161,7 +161,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="方案" required>
-          <el-select v-model="paymentForm.planId" placeholder="請選擇方案" style="width: 100%">
+          <el-select v-model="paymentForm.planId" filterable placeholder="請選擇方案" style="width: 100%">
             <el-option v-for="p in plans" :key="p.id" :label="p.name" :value="p.id" />
           </el-select>
         </el-form-item>
