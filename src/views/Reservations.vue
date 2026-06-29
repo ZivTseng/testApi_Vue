@@ -28,6 +28,7 @@
               </el-form-item>
               <el-form-item>
                 <el-button type="primary" :icon="Plus" @click="openBookingDialog()">新增預約</el-button>
+                <el-button :icon="Tickets" @click="openDailyRosterDialog()">每日預約表</el-button>
               </el-form-item>
             </el-form>
           </el-card>
@@ -157,7 +158,17 @@
             <el-option v-for="s in students" :key="s.id" :label="`${s.name}（${s.studentNo}）`" :value="s.id" />
           </el-select>
         </el-form-item>
-        <el-form-item label="體驗課">
+        <el-form-item label="預約方式">
+          <el-radio-group v-model="bookingForm.repeatMode">
+            <el-radio-button label="once">單次</el-radio-button>
+            <el-radio-button label="weekly">連續（未來每週同一時段）</el-radio-button>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item v-if="bookingForm.repeatMode === 'weekly'" label="重複次數（含本次）" required>
+          <el-input-number v-model="bookingForm.repeatCount" :min="2" :max="26" style="width: 100%" />
+          <p class="hint">會依目前選的場次找出未來同一課程、同星期、同時段的場次一併預約，找不到對應場次的部分會跳過</p>
+        </el-form-item>
+        <el-form-item v-if="bookingForm.repeatMode === 'once'" label="體驗課">
           <el-switch v-model="bookingForm.trial" />
           <span class="hint">體驗課不扣堂數</span>
         </el-form-item>
@@ -167,6 +178,34 @@
         <el-button type="primary" :loading="bookingSaving" @click="submitBooking">送出預約</el-button>
       </template>
     </el-dialog>
+
+    <!-- 每日預約表 -->
+    <el-dialog v-model="dailyRosterDialogVisible" title="每日預約表" width="700px" append-to-body>
+      <el-date-picker
+        v-model="dailyRosterDate"
+        type="date"
+        value-format="YYYY-MM-DD"
+        style="margin-bottom: 16px"
+        @change="loadDailyRoster"
+      />
+      <el-table :data="dailyRoster" v-loading="dailyRosterLoading" stripe>
+        <el-table-column prop="startTime" label="時間" width="90">
+          <template #default="{ row }">{{ row.startTime?.slice(0, 5) }}</template>
+        </el-table-column>
+        <el-table-column prop="courseName" label="課程" />
+        <el-table-column prop="studentName" label="學員" width="120" />
+        <el-table-column label="狀態" width="100">
+          <template #default="{ row }">
+            <el-tag :type="row.status === 'CONFIRMED' ? 'success' : row.status === 'ABSENT' ? 'danger' : ''" size="small">
+              {{ statusLabel(row.status) }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="體驗課" width="80">
+          <template #default="{ row }">{{ row.trial ? '是' : '' }}</template>
+        </el-table-column>
+      </el-table>
+    </el-dialog>
   </div>
 </template>
 
@@ -174,7 +213,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus } from '@element-plus/icons-vue'
+import { Plus, Tickets } from '@element-plus/icons-vue'
 import Sidebar from '../components/Sidebar.vue'
 import http from '../api/http'
 
@@ -200,7 +239,12 @@ const waitlistLoading = ref(false)
 const bookingDialogVisible = ref(false)
 const bookingSaving = ref(false)
 const bookingLocked = ref(false)
-const bookingForm = reactive({ courseId: null, sessionId: null, studentId: null, trial: false })
+const bookingForm = reactive({ courseId: null, sessionId: null, studentId: null, trial: false, repeatMode: 'once', repeatCount: 4 })
+
+const dailyRosterDialogVisible = ref(false)
+const dailyRosterDate = ref(null)
+const dailyRoster = ref([])
+const dailyRosterLoading = ref(false)
 
 const visibleSessions = computed(() =>
   selectedCourseId.value ? allSessions.value.filter((s) => s.courseId === selectedCourseId.value) : allSessions.value
@@ -281,7 +325,41 @@ const openBookingDialog = (lockedSession = null) => {
   }
   bookingForm.studentId = null
   bookingForm.trial = false
+  bookingForm.repeatMode = 'once'
+  bookingForm.repeatCount = 4
   bookingDialogVisible.value = true
+}
+
+// 同課程、同星期、同時段，從選定場次（含）往後找，找出未來幾次符合條件的場次 ID，供「連續預約」一次建立多筆
+const findRepeatSessionIds = (session, count) => {
+  const weekday = new Date(session.sessionDate).getDay()
+  return allSessions.value
+    .filter((s) =>
+      s.courseId === session.courseId &&
+      s.startTime === session.startTime &&
+      s.sessionDate >= session.sessionDate &&
+      new Date(s.sessionDate).getDay() === weekday
+    )
+    .sort((a, b) => a.sessionDate.localeCompare(b.sessionDate))
+    .slice(0, count)
+    .map((s) => s.id)
+}
+
+const openDailyRosterDialog = () => {
+  dailyRosterDate.value = new Date().toISOString().slice(0, 10)
+  dailyRosterDialogVisible.value = true
+  loadDailyRoster()
+}
+
+const loadDailyRoster = async () => {
+  if (!dailyRosterDate.value) return
+  dailyRosterLoading.value = true
+  try {
+    const { data } = await http.get(`/api/reservations/date/${dailyRosterDate.value}`)
+    dailyRoster.value = data.sort((a, b) => a.startTime.localeCompare(b.startTime))
+  } finally {
+    dailyRosterLoading.value = false
+  }
 }
 
 const submitBooking = async () => {
@@ -292,12 +370,33 @@ const submitBooking = async () => {
   if (bookingSaving.value) return
   bookingSaving.value = true
   try {
-    const { data } = await http.post('/api/reservations', {
-      studentId: bookingForm.studentId,
-      sessionId: bookingForm.sessionId,
-      trial: bookingForm.trial,
-    })
-    ElMessage.success(data.message)
+    if (bookingForm.repeatMode === 'once') {
+      const { data } = await http.post('/api/reservations', {
+        studentId: bookingForm.studentId,
+        sessionId: bookingForm.sessionId,
+        trial: bookingForm.trial,
+      })
+      ElMessage.success(data.message)
+    } else {
+      const session = allSessions.value.find((s) => s.id === bookingForm.sessionId)
+      const sessionIds = findRepeatSessionIds(session, bookingForm.repeatCount)
+      let reservedCount = 0
+      let waitlistedCount = 0
+      for (const sessionId of sessionIds) {
+        const { data } = await http.post('/api/reservations', {
+          studentId: bookingForm.studentId,
+          sessionId,
+          trial: false,
+        })
+        if (data.waitlisted) waitlistedCount++
+        else reservedCount++
+      }
+      const skipped = bookingForm.repeatCount - sessionIds.length
+      ElMessage.success(
+        `已預約 ${reservedCount} 場、候補 ${waitlistedCount} 場` +
+          (skipped > 0 ? `，另有 ${skipped} 次找不到對應場次未建立` : '')
+      )
+    }
     bookingDialogVisible.value = false
     if (bookingForm.sessionId === activeSessionId.value) {
       refreshSessionData()
