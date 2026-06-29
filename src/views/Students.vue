@@ -46,6 +46,27 @@
                 <el-table-column label="家長">
                   <template #default="{ row }">{{ parentNames(row.parentIds) }}</template>
                 </el-table-column>
+                <el-table-column label="身份" width="90">
+                  <template #default="{ row }">
+                    <el-tag :type="activePlanOf(row.id) ? 'success' : 'info'" size="small">
+                      {{ activePlanOf(row.id) ? '正式學員' : '體驗/未購買' }}
+                    </el-tag>
+                  </template>
+                </el-table-column>
+                <el-table-column label="方案" width="140">
+                  <template #default="{ row }">{{ activePlanOf(row.id)?.planName || '—' }}</template>
+                </el-table-column>
+                <el-table-column label="已用/剩餘堂數" width="120">
+                  <template #default="{ row }">
+                    <template v-if="activePlanOf(row.id)">
+                      {{ activePlanOf(row.id).totalSessions - activePlanOf(row.id).remainingSessions }} / {{ activePlanOf(row.id).remainingSessions }}
+                    </template>
+                    <template v-else>—</template>
+                  </template>
+                </el-table-column>
+                <el-table-column label="使用期限" width="120">
+                  <template #default="{ row }">{{ activePlanOf(row.id)?.expireDate || '—' }}</template>
+                </el-table-column>
                 <el-table-column prop="note" label="備註" show-overflow-tooltip />
                 <el-table-column label="操作" width="160" fixed="right">
                   <template #default="{ row }">
@@ -190,6 +211,7 @@ const students = ref([])
 const parents = ref([])
 const studentsLoading = ref(false)
 const parentsLoading = ref(false)
+const studentPlans = ref([])
 
 const studentKeyword = ref('')
 const studentGenderFilter = ref(null)
@@ -242,6 +264,20 @@ const loadStudents = async () => {
   } finally {
     studentsLoading.value = false
   }
+}
+
+const loadStudentPlans = async () => {
+  const { data } = await http.get('/api/student-plans')
+  studentPlans.value = data
+}
+
+// 「目前可用方案」：未過期、還有剩餘堂數，多筆時取最快到期的一筆，跟後端 ReservationService.findUsablePlan 邏輯一致
+// 找不到可用方案代表這個學員還沒繳費購買方案，視為體驗/未轉正學員
+const activePlanOf = (studentId) => {
+  const today = new Date().toISOString().slice(0, 10)
+  return studentPlans.value
+    .filter((sp) => sp.studentId === studentId && sp.remainingSessions > 0 && sp.expireDate >= today)
+    .sort((a, b) => a.expireDate.localeCompare(b.expireDate))[0]
 }
 
 const loadParents = async () => {
@@ -389,6 +425,7 @@ const handleLogout = () => {
 onMounted(() => {
   loadParents()
   loadStudents()
+  loadStudentPlans()
 })
 </script>
 
