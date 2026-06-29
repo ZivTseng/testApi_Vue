@@ -18,9 +18,9 @@
           <el-card class="panel" shadow="never">
             <p class="hint">這裡的數值會直接影響取消預約、候補保留等營運規則，調整後立即生效。</p>
             <el-table :data="params" v-loading="loading" stripe>
-              <el-table-column prop="paramKey" label="參數鍵" width="260" />
-              <el-table-column prop="description" label="說明" show-overflow-tooltip />
-              <el-table-column prop="paramValue" label="目前數值" width="120" />
+              <el-table-column prop="paramKey" label="參數鍵" sortable width="260" />
+              <el-table-column prop="description" label="說明" sortable show-overflow-tooltip />
+              <el-table-column prop="paramValue" label="目前數值" sortable width="120" />
               <el-table-column label="操作" width="120" fixed="right">
                 <template #default="{ row }">
                   <el-button link type="primary" @click="openEditDialog(row)">編輯</el-button>

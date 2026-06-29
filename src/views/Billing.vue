@@ -22,10 +22,10 @@
                 <el-button type="primary" :icon="Plus" @click="openPlanDialog()">新增方案</el-button>
               </div>
               <el-table :data="plans" v-loading="plansLoading" stripe>
-                <el-table-column prop="name" label="方案名稱" />
-                <el-table-column prop="totalSessions" label="總堂數" width="100" />
-                <el-table-column prop="validityDays" label="效期（天）" width="110" />
-                <el-table-column label="價格" width="120">
+                <el-table-column prop="name" label="方案名稱" sortable />
+                <el-table-column prop="totalSessions" label="總堂數" sortable width="100" />
+                <el-table-column prop="validityDays" label="效期（天）" sortable width="110" />
+                <el-table-column prop="price" label="價格" sortable width="120">
                   <template #default="{ row }">NT$ {{ row.price }}</template>
                 </el-table-column>
                 <el-table-column label="操作" width="140" fixed="right">
@@ -46,10 +46,10 @@
                 <el-button type="primary" :icon="Plus" :disabled="!billingStudentId" @click="openOpenPlanDialog">開通方案</el-button>
               </div>
               <el-table :data="studentPlans" v-loading="studentPlansLoading" stripe>
-                <el-table-column prop="planName" label="方案" />
-                <el-table-column prop="remainingSessions" label="剩餘堂數" width="100" />
-                <el-table-column prop="purchaseDate" label="購買日" width="120" />
-                <el-table-column prop="expireDate" label="到期日" width="120" />
+                <el-table-column prop="planName" label="方案" sortable />
+                <el-table-column prop="remainingSessions" label="剩餘堂數" sortable width="100" />
+                <el-table-column prop="purchaseDate" label="購買日" sortable width="120" />
+                <el-table-column prop="expireDate" label="到期日" sortable width="120" />
                 <el-table-column label="操作" width="140" fixed="right">
                   <template #default="{ row }">
                     <el-button link type="primary" @click="openAdjustDialog(row)">調整堂數</el-button>
@@ -72,17 +72,17 @@
                 />
               </div>
               <el-table :data="filteredPayments" v-loading="paymentsLoading" stripe>
-                <el-table-column prop="studentName" label="學員" width="120" />
-                <el-table-column prop="planName" label="方案" />
-                <el-table-column label="金額" width="100">
+                <el-table-column prop="studentName" label="學員" sortable width="120" />
+                <el-table-column prop="planName" label="方案" sortable />
+                <el-table-column prop="amount" label="金額" sortable width="100">
                   <template #default="{ row }">NT$ {{ row.amount }}</template>
                 </el-table-column>
-                <el-table-column label="方式" width="90">
+                <el-table-column prop="method" label="方式" sortable width="90">
                   <template #default="{ row }">{{ row.method === 'CASH' ? '現金' : '轉帳' }}</template>
                 </el-table-column>
-                <el-table-column prop="paymentDate" label="付款日" width="120" />
-                <el-table-column prop="note" label="備註" show-overflow-tooltip />
-                <el-table-column label="狀態" width="100">
+                <el-table-column prop="paymentDate" label="付款日" sortable width="120" />
+                <el-table-column prop="note" label="備註" sortable show-overflow-tooltip />
+                <el-table-column prop="status" label="狀態" sortable width="100">
                   <template #default="{ row }">
                     <el-tag :type="row.status === 'CONFIRMED' ? 'success' : 'warning'">
                       {{ row.status === 'CONFIRMED' ? '已確認' : '待確認' }}

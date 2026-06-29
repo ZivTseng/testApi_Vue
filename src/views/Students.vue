@@ -37,26 +37,41 @@
                 <el-button type="primary" :icon="Plus" @click="openStudentDialog()">新增學員</el-button>
               </div>
               <el-table :data="filteredStudents" v-loading="studentsLoading" stripe>
-                <el-table-column prop="studentNo" label="學號" width="120" />
-                <el-table-column prop="name" label="姓名" width="120" />
-                <el-table-column label="性別" width="90">
+                <el-table-column prop="studentNo" label="學號" sortable width="120" />
+                <el-table-column prop="name" label="姓名" sortable width="120" />
+                <el-table-column prop="gender" label="性別" sortable width="90">
                   <template #default="{ row }">{{ genderLabel(row.gender) }}</template>
                 </el-table-column>
-                <el-table-column prop="birthday" label="生日" width="120" />
+                <el-table-column prop="birthday" label="生日" sortable width="120" />
                 <el-table-column label="家長">
                   <template #default="{ row }">{{ parentNames(row.parentIds) }}</template>
                 </el-table-column>
-                <el-table-column label="身份" width="90">
+                <el-table-column
+                  label="身份"
+                  width="90"
+                  sortable
+                  :sort-method="(a, b) => Number(!!activePlanOf(a.id)) - Number(!!activePlanOf(b.id))"
+                >
                   <template #default="{ row }">
                     <el-tag :type="activePlanOf(row.id) ? 'success' : 'info'" size="small">
                       {{ activePlanOf(row.id) ? '正式學員' : '體驗/未購買' }}
                     </el-tag>
                   </template>
                 </el-table-column>
-                <el-table-column label="方案" width="140">
+                <el-table-column
+                  label="方案"
+                  width="140"
+                  sortable
+                  :sort-method="(a, b) => (activePlanOf(a.id)?.planName || '').localeCompare(activePlanOf(b.id)?.planName || '')"
+                >
                   <template #default="{ row }">{{ activePlanOf(row.id)?.planName || '—' }}</template>
                 </el-table-column>
-                <el-table-column label="已用/剩餘堂數" width="120">
+                <el-table-column
+                  label="已用/剩餘堂數"
+                  width="120"
+                  sortable
+                  :sort-method="(a, b) => (activePlanOf(a.id)?.remainingSessions ?? -1) - (activePlanOf(b.id)?.remainingSessions ?? -1)"
+                >
                   <template #default="{ row }">
                     <template v-if="activePlanOf(row.id)">
                       {{ activePlanOf(row.id).totalSessions - activePlanOf(row.id).remainingSessions }} / {{ activePlanOf(row.id).remainingSessions }}
@@ -64,10 +79,15 @@
                     <template v-else>—</template>
                   </template>
                 </el-table-column>
-                <el-table-column label="使用期限" width="120">
+                <el-table-column
+                  label="使用期限"
+                  width="120"
+                  sortable
+                  :sort-method="(a, b) => (activePlanOf(a.id)?.expireDate || '').localeCompare(activePlanOf(b.id)?.expireDate || '')"
+                >
                   <template #default="{ row }">{{ activePlanOf(row.id)?.expireDate || '—' }}</template>
                 </el-table-column>
-                <el-table-column prop="note" label="備註" show-overflow-tooltip />
+                <el-table-column prop="note" label="備註" sortable show-overflow-tooltip />
                 <el-table-column label="操作" width="160" fixed="right">
                   <template #default="{ row }">
                     <el-button link type="primary" @click="openStudentDialog(row)">編輯</el-button>
@@ -90,22 +110,27 @@
                 <el-button type="primary" :icon="Plus" @click="openParentDialog()">新增家長</el-button>
               </div>
               <el-table :data="filteredParents" v-loading="parentsLoading" stripe>
-                <el-table-column prop="name" label="姓名" width="140" />
-                <el-table-column prop="phone" label="電話" width="140" />
-                <el-table-column label="LINE 綁定" width="100">
+                <el-table-column prop="name" label="姓名" sortable width="140" />
+                <el-table-column prop="phone" label="電話" sortable width="140" />
+                <el-table-column prop="lineUserId" label="LINE 綁定" sortable width="100">
                   <template #default="{ row }">
                     <el-tag :type="row.lineUserId ? 'success' : 'info'" size="small">
                       {{ row.lineUserId ? '已綁定' : '未綁定' }}
                     </el-tag>
                   </template>
                 </el-table-column>
-                <el-table-column label="報名狀態" width="110">
+                <el-table-column prop="pendingReview" label="報名狀態" sortable width="110">
                   <template #default="{ row }">
                     <el-tag v-if="row.pendingReview" type="warning" size="small">待確認</el-tag>
                     <el-tag v-else type="success" size="small">已確認</el-tag>
                   </template>
                 </el-table-column>
-                <el-table-column label="孩子數量" width="100">
+                <el-table-column
+                  label="孩子數量"
+                  width="100"
+                  sortable
+                  :sort-method="(a, b) => (a.studentIds?.length || 0) - (b.studentIds?.length || 0)"
+                >
                   <template #default="{ row }">{{ row.studentIds?.length || 0 }}</template>
                 </el-table-column>
                 <el-table-column label="操作" width="280" fixed="right">

@@ -19,6 +19,7 @@
             <el-card class="panel" shadow="never">
               <div class="panel-header">
                 <h3>課程列表</h3>
+                <el-button size="small" :loading="cleaningDuplicates" @click="cleanupDuplicateSessions">清理重複場次</el-button>
                 <el-button type="primary" :icon="Plus" size="small" @click="openCourseDialog()">新增課程</el-button>
               </div>
               <el-table
@@ -28,8 +29,8 @@
                 @current-change="handleSelectCourse"
                 stripe
               >
-                <el-table-column prop="name" label="課程名稱" />
-                <el-table-column prop="description" label="說明" show-overflow-tooltip />
+                <el-table-column prop="name" label="課程名稱" sortable />
+                <el-table-column prop="description" label="說明" sortable show-overflow-tooltip />
                 <el-table-column label="操作" width="140" fixed="right">
                   <template #default="{ row }">
                     <el-button link type="primary" @click.stop="openCourseDialog(row)">編輯</el-button>
@@ -51,12 +52,12 @@
                   @click="openSessionDialog()"
                 >新增場次</el-button>
               </div>
-              <el-table :data="pagedSessions" v-loading="sessionsLoading" stripe>
-                <el-table-column prop="sessionDate" label="日期" width="120" />
-                <el-table-column label="時間" width="140">
+              <el-table :data="pagedSessions" v-loading="sessionsLoading" stripe @sort-change="handleSessionSortChange">
+                <el-table-column prop="sessionDate" label="日期" sortable="custom" width="120" />
+                <el-table-column prop="startTime" label="時間" sortable="custom" width="140">
                   <template #default="{ row }">{{ row.startTime?.slice(0, 5) }} - {{ row.endTime?.slice(0, 5) }}</template>
                 </el-table-column>
-                <el-table-column label="名額" width="140">
+                <el-table-column prop="reservedCount" label="名額" sortable="custom" width="140">
                   <template #default="{ row }">
                     <el-tag :type="row.full ? 'danger' : 'success'">{{ row.reservedCount }} / {{ row.capacity }}</el-tag>
                   </template>
@@ -166,17 +167,27 @@ const sessionDialogVisible = ref(false)
 const showPastSessions = ref(false)
 const sessionPage = ref(1)
 const sessionPageSize = 15
+const sessionSort = reactive({ prop: '', order: '' })
 
 // 同一個課程如果每天都排課，半年下來會有幾百筆場次，預設先濾掉已過期的，避免列表太長不好找
 const visibleSessions = computed(() => {
-  if (showPastSessions.value) return sessions.value
-  const today = new Date().toISOString().slice(0, 10)
-  return sessions.value.filter((s) => s.sessionDate >= today)
+  let list = showPastSessions.value
+    ? sessions.value
+    : sessions.value.filter((s) => s.sessionDate >= new Date().toISOString().slice(0, 10))
+  if (sessionSort.prop && sessionSort.order) {
+    const dir = sessionSort.order === 'ascending' ? 1 : -1
+    list = [...list].sort((a, b) => (a[sessionSort.prop] > b[sessionSort.prop] ? dir : a[sessionSort.prop] < b[sessionSort.prop] ? -dir : 0))
+  }
+  return list
 })
 const pagedSessions = computed(() => {
   const start = (sessionPage.value - 1) * sessionPageSize
   return visibleSessions.value.slice(start, start + sessionPageSize)
 })
+const handleSessionSortChange = ({ prop, order }) => {
+  sessionSort.prop = prop
+  sessionSort.order = order
+}
 const emptySessionForm = () => ({
   id: null,
   sessionDate: null,
@@ -261,6 +272,29 @@ const saveCourse = async () => {
     // 錯誤訊息已由 http 攔截器統一顯示，這裡只需保持對話框開啟讓使用者修正
   } finally {
     courseSaving.value = false
+  }
+}
+
+const cleaningDuplicates = ref(false)
+const cleanupDuplicateSessions = async () => {
+  try {
+    await ElMessageBox.confirm(
+      '會找出同課程、同日期、同時段、同名額的重複場次，每組只保留一筆，其餘永久刪除。確定要執行嗎？',
+      '清理重複場次',
+      { type: 'warning' }
+    )
+  } catch {
+    return
+  }
+  cleaningDuplicates.value = true
+  try {
+    const { data } = await http.post('/api/course-sessions/cleanup-duplicates')
+    ElMessage.success(data.message)
+    refreshSessions()
+  } catch {
+    // 錯誤訊息已由 http 攔截器統一顯示
+  } finally {
+    cleaningDuplicates.value = false
   }
 }
 

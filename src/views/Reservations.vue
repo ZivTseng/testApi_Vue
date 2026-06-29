@@ -79,13 +79,13 @@
 
         <h4 class="section-title">預約名冊</h4>
         <el-table :data="roster" v-loading="rosterLoading" stripe>
-          <el-table-column prop="studentName" label="學員" width="120" />
-          <el-table-column label="狀態" width="100">
+          <el-table-column prop="studentName" label="學員" sortable width="120" />
+          <el-table-column prop="status" label="狀態" sortable width="100">
             <template #default="{ row }">
               <el-tag :type="statusTagType(row.status)">{{ statusLabel(row.status) }}</el-tag>
             </template>
           </el-table-column>
-          <el-table-column label="體驗課" width="70">
+          <el-table-column prop="trial" label="體驗課" sortable width="70">
             <template #default="{ row }">{{ row.trial ? '是' : '否' }}</template>
           </el-table-column>
           <el-table-column label="操作" fixed="right">
@@ -102,14 +102,14 @@
 
         <h4 class="section-title">候補名單</h4>
         <el-table :data="waitlist" v-loading="waitlistLoading" stripe>
-          <el-table-column prop="queueNo" label="順位" width="60" />
-          <el-table-column prop="studentName" label="學員" width="120" />
-          <el-table-column label="狀態" width="110">
+          <el-table-column prop="queueNo" label="順位" sortable width="60" />
+          <el-table-column prop="studentName" label="學員" sortable width="120" />
+          <el-table-column prop="status" label="狀態" sortable width="110">
             <template #default="{ row }">
               <el-tag :type="waitlistTagType(row.status)">{{ waitlistLabel(row.status) }}</el-tag>
             </template>
           </el-table-column>
-          <el-table-column prop="expireAt" label="保留期限" show-overflow-tooltip />
+          <el-table-column prop="expireAt" label="保留期限" sortable show-overflow-tooltip />
           <el-table-column label="操作" width="100" fixed="right">
             <template #default="{ row }">
               <el-button v-if="row.status === 'NOTIFIED'" link type="primary" @click="confirmWaitlist(row)">
@@ -189,19 +189,19 @@
         @change="loadDailyRoster"
       />
       <el-table :data="dailyRoster" v-loading="dailyRosterLoading" stripe>
-        <el-table-column prop="startTime" label="時間" width="90">
+        <el-table-column prop="startTime" label="時間" sortable width="90">
           <template #default="{ row }">{{ row.startTime?.slice(0, 5) }}</template>
         </el-table-column>
-        <el-table-column prop="courseName" label="課程" />
-        <el-table-column prop="studentName" label="學員" width="120" />
-        <el-table-column label="狀態" width="100">
+        <el-table-column prop="courseName" label="課程" sortable />
+        <el-table-column prop="studentName" label="學員" sortable width="120" />
+        <el-table-column prop="status" label="狀態" sortable width="100">
           <template #default="{ row }">
             <el-tag :type="row.status === 'CONFIRMED' ? 'success' : row.status === 'ABSENT' ? 'danger' : ''" size="small">
               {{ statusLabel(row.status) }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="體驗課" width="80">
+        <el-table-column prop="trial" label="體驗課" sortable width="80">
           <template #default="{ row }">{{ row.trial ? '是' : '' }}</template>
         </el-table-column>
       </el-table>
